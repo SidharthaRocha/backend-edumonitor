@@ -36,6 +36,7 @@ try {
         echo json_encode([
             'message' => 'Login bem-sucedido.',
             'userType' => 'professor', // Especifica que é um professor
+            'userName' => $professor['nome'], // Adiciona o nome do professor
             'professor' => $professor // Pode retornar outras informações sobre o professor, se necessário
         ]);
     } else {

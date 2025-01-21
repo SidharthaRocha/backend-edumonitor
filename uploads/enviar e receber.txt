@@ -1,0 +1,398 @@
+<?php
+// Configura os headers
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: POST, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type, Authorization");
+header("Content-Type: application/json");
+
+// Responde a requisições OPTIONS
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204); // No Content
+    exit;
+}
+
+require 'config.php';
+
+try {
+    // Lê o corpo da requisição
+    $data = json_decode(file_get_contents('php://input'), true);
+
+    // Valida os dados recebidos
+    if (empty($data['feedback']) || empty($data['sugestao'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Todos os campos são obrigatórios.']);
+        http_response_code(400);
+        exit;
+    }
+
+    // Insere no banco de dados
+    $stmt = $pdo->prepare("INSERT INTO feedbacks (feedback, sugestao, data_envio) VALUES (?, ?, NOW())");
+    $stmt->execute([$data['feedback'], $data['sugestao']]);
+
+    // Retorna sucesso
+    echo json_encode(['status' => 'success', 'message' => 'Feedback enviado com sucesso.']);
+    exit;
+} catch (PDOException $e) {
+    // Retorna erro do banco de dados
+    echo json_encode(['status' => 'error', 'message' => 'Erro no servidor: ' . $e->getMessage()]);
+    http_response_code(500);
+    exit;
+} catch (Exception $e) {
+    // Retorna erro geral
+    echo json_encode(['status' => 'error', 'message' => 'Erro inesperado: ' . $e->getMessage()]);
+    http_response_code(500);
+    exit;
+} enviar e-mail
+ 
+
+
+<?php
+header('Content-Type: application/json; charset=utf-8');
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: GET, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
+
+require 'config.php';
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(204);
+    exit;
+}
+
+try {
+    // Configura paginação
+    $page = isset($_GET['page']) ? (int)$_GET['page'] : 1; // Página atual
+    $limit = 10; // Número de registros por página
+    $offset = ($page - 1) * $limit;
+
+    // Consulta os dados com paginação
+    $stmt = $pdo->prepare("
+        SELECT feedback, sugestao, 
+               DATE_FORMAT(data_envio, '%d/%m/%Y %H:%i') AS data_envio 
+        FROM feedbacks 
+        ORDER BY data_envio DESC 
+        LIMIT :limit OFFSET :offset
+    ");
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
+    $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+    $stmt->execute();
+
+    $feedbacks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Conta o total de registros para paginação
+    $totalStmt = $pdo->query("SELECT COUNT(*) FROM feedbacks");
+    $totalRecords = (int) $totalStmt->fetchColumn();
+    $totalPages = ceil($totalRecords / $limit);
+
+    // Resposta de sucesso com paginação
+    echo json_encode([
+        'status' => 'success',
+        'data' => $feedbacks,
+        'pagination' => [
+            'current_page' => $page,
+            'total_pages' => $totalPages,
+            'total_records' => $totalRecords,
+        ],
+    ]);
+} catch (PDOException $e) {
+    // Resposta de erro genérica
+    http_response_code(500);
+    echo json_encode([
+        'status' => 'error',
+        'message' => 'Erro ao buscar os dados. Por favor, tente novamente mais tarde.'
+    ]);
+
+    // Opcional: Log do erro para fins de depuração (não exibir no frontend)
+    error_log("Erro ao buscar feedbacks: " . $e->getMessage());
+} receber 
+?>
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+FRONT-END  
+
+RECEBER FEDDBACK
+
+
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import { FaRegComment } from 'react-icons/fa';
+import { MdTipsAndUpdates } from 'react-icons/md';
+import { FaArrowLeft } from 'react-icons/fa';
+
+const Comportamento = () => {
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [status, setStatus] = useState('');
+
+  useEffect(() => {
+    const fetchFeedbacks = async () => {
+      try {
+        const response = await fetch('http://localhost/backend/receberFeedback.php'); // Altere o endpoint conforme necessário
+        if (!response.ok) {
+          throw new Error('Erro ao buscar feedbacks.');
+        }
+
+        const data = await response.json();
+        if (data.status === 'success') {
+          setFeedbacks(data.data);
+        } else {
+          setStatus(data.message || 'Erro ao carregar os dados.');
+        }
+      } catch (error) {
+        console.error('Erro ao buscar feedbacks:', error.message);
+        setStatus('Erro ao carregar os dados.');
+      }
+    };
+
+    fetchFeedbacks();
+  }, []);
+
+  return (
+    <div className="min-h-screen bg-gradient-to-r from-teal-100 to-green-200 py-12 px-6 sm:px-8 lg:px-12">
+      <div className="max-w-7xl mx-auto">
+        {/* Botão de Voltar */}
+        <div className="mb-6">
+          <Link
+            to="/Dashboard-aluno"
+            className="inline-flex items-center text-[#2b7a76] font-semibold text-lg bg-white px-4 py-2 rounded-full shadow-md hover:bg-[#2b7a76] hover:text-white transition-all duration-300 ease-in-out transform hover:scale-105"
+          >
+            <FaArrowLeft className="mr-2" />
+            Voltar
+          </Link>
+        </div>
+
+        {/* Título da Página */}
+        <h1 className="text-5xl font-extrabold text-[#2b7a76] text-center mb-12 animate__animated animate__fadeIn">
+          Meu Comportamento
+        </h1>
+
+        {/* Cards de Funcionalidades */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-8">
+          {/* Visualizar Feedback */}
+          <div className="bg-white rounded-xl shadow-xl p-8 hover:shadow-2xl transition-all transform hover:scale-105 ease-in-out duration-300">
+            <h2 className="text-2xl font-semibold text-[#2b7a76] mb-4">Visualizar Feedback</h2>
+            <p className="text-gray-700 mb-4">Confira os comentários e observações feitas pelos professores sobre seu comportamento.</p>
+            <div className="mt-4">
+              <FaRegComment className="text-[#2b7a76] text-6xl mx-auto" />
+            </div>
+          </div>
+
+          {/* Sugestões de Melhoria */}
+          <div className="bg-white rounded-xl shadow-xl p-8 hover:shadow-2xl transition-all transform hover:scale-105 ease-in-out duration-300">
+            <h2 className="text-2xl font-semibold text-[#2b7a76] mb-4">Sugestões de Melhoria</h2>
+            <p className="text-gray-700 mb-4">Veja dicas personalizadas para melhorar seu desempenho e comportamento.</p>
+            <div className="mt-4">
+              <MdTipsAndUpdates className="text-[#2b7a76] text-6xl mx-auto" />
+            </div>
+          </div>
+        </div>
+
+        {/* Feedbacks e Sugestões */}
+        <div className="mt-12">
+          {/* Feedbacks */}
+          <div className="bg-white rounded-2xl p-10 shadow-xl hover:shadow-2xl transition-all ease-in-out duration-300">
+            <h3 className="text-3xl font-semibold text-[#2b7a76] mb-6">Feedback dos Professores</h3>
+            <div className="space-y-6">
+              {feedbacks.length > 0 ? (
+                feedbacks.map((item, index) => (
+                  <div key={index} className="bg-gray-50 rounded-xl p-6 shadow-md">
+                    <p className="text-lg text-gray-800">
+                      "{item.feedback}" <span className="text-sm text-gray-500">({item.data_envio})</span>
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <p className="text-center text-gray-700">Nenhum feedback disponível.</p>
+              )}
+            </div>
+          </div>
+
+          {/* Sugestões de Melhoria */}
+          <div className="mt-12 bg-white rounded-2xl p-10 shadow-xl hover:shadow-2xl transition-all ease-in-out duration-300">
+            <h3 className="text-3xl font-semibold text-[#2b7a76] mb-6">Sugestões de Melhoria</h3>
+            <ul className="list-disc pl-6 text-lg text-gray-800 space-y-4">
+              {feedbacks.length > 0 ? (
+                feedbacks.map((item, index) => (
+                  <li key={index}>{item.sugestao}</li>
+                ))
+              ) : (
+                <p className="text-center text-gray-700">Nenhuma sugestão disponível.</p>
+              )}
+            </ul>
+          </div>
+        </div>
+
+        {/* Botões de Ação */}
+        <div className="mt-12 text-center">
+          <button className="bg-[#2b7a76] text-white px-6 py-3 rounded-full text-xl font-semibold transition-transform transform hover:scale-105 hover:bg-[#236c5c] duration-300">
+            Gerar Relatório de Comportamento
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Comportamento;
+
+
+ENVIAR FEEDBACK: 
+
+import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { FaArrowLeft } from 'react-icons/fa';
+
+const EnviarFeedback = () => {
+  const [feedback, setFeedback] = useState('');
+  const [sugestao, setSugestao] = useState('');
+  const [emailDestino, setEmailDestino] = useState('');
+  const [status, setStatus] = useState('');
+
+  const handleEnviar = async () => {
+    if (!feedback || !sugestao || !emailDestino) {
+      setStatus('Por favor, preencha todos os campos.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost/backend/enviarFeedback.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ feedback, sugestao, emailDestino }),
+      });
+
+      const data = await response.json();
+
+      if (data.status === 'success') {
+        setStatus('Feedback e sugestão enviados com sucesso!');
+        setFeedback('');
+        setSugestao('');
+        setEmailDestino('');
+      } else {
+        setStatus(data.message || 'Erro ao enviar os dados.');
+      }
+    } catch (error) {
+      console.error('Erro ao enviar:', error.message);
+      setStatus('Erro ao enviar os dados.');
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-r from-teal-100 to-green-200 py-12 px-6 sm:px-8 lg:px-12">
+      <div className="max-w-4xl mx-auto">
+        {/* Botão de Voltar */}
+        <div className="mb-6">
+          <Link
+            to="/Dashboard-aluno"
+            className="inline-flex items-center text-[#2b7a76] font-semibold text-lg bg-white px-4 py-2 rounded-full shadow-md hover:bg-[#2b7a76] hover:text-white transition-all duration-300 ease-in-out transform hover:scale-105"
+          >
+            <FaArrowLeft className="mr-2" />
+            Voltar
+          </Link>
+        </div>
+
+        {/* Título */}
+        <h1 className="text-5xl font-extrabold text-[#2b7a76] text-center mb-12 animate__animated animate__fadeIn">
+          Enviar Feedback e Sugestão
+        </h1>
+
+        {/* Formulário */}
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+          {/* Campo de Feedback */}
+          <div className="mb-6">
+            <label htmlFor="feedback" className="block text-lg font-medium text-gray-700 mb-2">
+              Feedback:
+            </label>
+            <textarea
+              id="feedback"
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              rows={4}
+              className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-[#2b7a76] focus:outline-none"
+              placeholder="Descreva o feedback..."
+            />
+          </div>
+
+          {/* Campo de Sugestão */}
+          <div className="mb-6">
+            <label htmlFor="sugestao" className="block text-lg font-medium text-gray-700 mb-2">
+              Sugestão:
+            </label>
+            <textarea
+              id="sugestao"
+              value={sugestao}
+              onChange={(e) => setSugestao(e.target.value)}
+              rows={4}
+              className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-[#2b7a76] focus:outline-none"
+              placeholder="Escreva sua sugestão de melhoria..."
+            />
+          </div>
+
+          {/* Campo de E-mail */}
+          <div className="mb-6">
+            <label htmlFor="emailDestino" className="block text-lg font-medium text-gray-700 mb-2">
+              Enviar para (E-mail):
+            </label>
+            <input
+              id="emailDestino"
+              type="email"
+              value={emailDestino}
+              onChange={(e) => setEmailDestino(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-3 text-gray-800 focus:ring-2 focus:ring-[#2b7a76] focus:outline-none"
+              placeholder="Digite o e-mail de destino..."
+            />
+          </div>
+
+          {/* Mensagem de Status */}
+          {status && (
+            <p
+              className={`text-center text-lg mb-4 ${
+                status.includes('sucesso') ? 'text-green-600' : 'text-red-600'
+              }`}
+            >
+              {status}
+            </p>
+          )}
+
+          {/* Botão de Enviar */}
+          <div className="text-center">
+            <button
+              onClick={handleEnviar}
+              className="bg-[#2b7a76] text-white px-6 py-3 rounded-full text-xl font-semibold transition-transform transform hover:scale-105 hover:bg-[#236c5c] duration-300"
+            >
+              Enviar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default EnviarFeedback;
+
+
+ 
+

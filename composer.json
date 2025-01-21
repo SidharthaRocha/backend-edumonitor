@@ -1,0 +1,22 @@
+{
+    "name": "max-sidhartha/projeto-edumonitor",
+    "description": "Sistema de monitoramento educacional para escolas.",
+    "type": "project",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "MaxSidhartha\\ProjetoEdumonitor\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Max Sidhartha",
+            "email": "max_rocha88@hotmail.com"
+        }
+    ],
+    "minimum-stability": "stable",
+    "require": {
+        "cboden/ratchet": "^0.4.4",
+        "phpmailer/phpmailer": "^6.9"
+    }
+}
