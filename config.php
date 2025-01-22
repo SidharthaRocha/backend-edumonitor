@@ -1,8 +1,9 @@
 <?php
-$servername = "junction.proxy.rlwy.net"; // Host do banco de dados
-$username = "root";                      // Usuário do banco de dados
-$password = "BHfvIHTDwRyggmmHaNeFyTjJTwSexvum"; // Senha do banco de dados
-$dbname = "railway";                     // Nome do banco de dados
+// Obter as variáveis de ambiente
+$servername = getenv('MYSQLHOST');   // Host do banco de dados
+$username = getenv('MYSQLUSER');     // Usuário do banco de dados
+$password = getenv('MYSQLPASSWORD'); // Senha do banco de dados
+$dbname = getenv('MYSQLDATABASE');   // Nome do banco de dados
 
 try {
     // Criar a conexão com PDO
