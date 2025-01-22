@@ -8,7 +8,7 @@ RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local
 COPY . /var/www/html
 
 # Instala as dependências do Composer dentro do contêiner
-RUN composer install --working-dir=/var/www/html
+RUN composer install --working-dir=/var/www/html --no-interaction --optimize-autoloader
 
 # Exponha a porta 80
 EXPOSE 80
