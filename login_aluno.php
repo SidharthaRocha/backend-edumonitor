@@ -23,7 +23,7 @@ if (empty($data['email']) || empty($data['senha'])) {
 // Valida o formato do e-mail
 if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
     http_response_code(400); // Erro 400 - Bad Request
-    echo json_encode(['message' => 'E-mail inválido.']);
+    echo json_encode(['message' => 'E-mail ou senha inválido.']);
     exit;
 }
 

@@ -21,7 +21,7 @@ if (empty($data['email']) || empty($data['senha'])) {
 
 if (!filter_var($data['email'], FILTER_VALIDATE_EMAIL)) {
     http_response_code(400);
-    echo json_encode(['message' => 'E-mail inválido.']);
+    echo json_encode(['message' => 'E-mail ou senha inválido.']);
     exit;
 }
 

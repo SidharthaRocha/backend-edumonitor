@@ -1,18 +1,21 @@
 <?php
-$servername = getenv('MYSQLHOST');  // Exemplo: junction.proxy.rlwy.net
-$username = getenv('MYSQLUSER');    // Exemplo: root
-$password = getenv('MYSQLPASSWORD'); // A senha fornecida
-$dbname = getenv('MYSQLDATABASE');  // O nome do banco de dados
+// Conexão remota com o banco de dados utilizando as variáveis de ambiente
+$host = getenv('MYSQLHOST');
+$port = getenv('MYSQLPORT');
+$db = getenv('MYSQLDATABASE');
+$user = getenv('MYSQLUSER');
+$password = getenv('MYSQLPASSWORD');
 
-try {
-    // Cria a conexão com o banco de dados
-    $conn = new PDO("mysql:host=$servername;port=58308;dbname=$dbname;charset=utf8", $username, $password);
-    $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+// Conexão com o banco de dados MySQL usando mysqli
+$conn = new mysqli($host, $user, $password, $db, $port);
 
-    echo "Conectado com sucesso!";
-} catch (PDOException $e) {
-    echo "Conexão falhou: " . $e->getMessage();
+// Verifica se houve erro na conexão
+if ($conn->connect_error) {
+    die("Falha na conexão: " . $conn->connect_error);
+} else {
+    echo "Conexão bem-sucedida!";
 }
 
-
+// Fechar a conexão
+$conn->close();
 ?>
